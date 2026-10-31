@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.2 – 2026-10-31
+
+Admin-Shell: die E-Mail des Nutzers steht nur noch im Profilblock der Sidebar, nicht mehr
+zusätzlich rechts in der Kopfzeile.
+
 ## v0.1.1 – 2026-10-31
 
 Erste nutzbare Fassung nach dem Umbau des identity-service: `dfsUiDom` bewahrt `open` von

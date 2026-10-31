@@ -206,12 +206,8 @@ defmodule DfsUi.Layouts do
             <img src={@mark_src} alt="" class="size-7 rounded-md" />
           </div>
           <h1 class="min-w-0 flex-1 truncate text-base font-semibold md:text-lg">{@page_title}</h1>
-          <div class="flex shrink-0 items-center gap-2">
+          <div :if={@header != []} class="flex shrink-0 items-center gap-2">
             {render_slot(@header)}
-            <span :if={@user} class="hidden text-sm text-muted-foreground lg:inline">{Map.get(
-              @user,
-              :email
-            )}</span>
           </div>
         </header>
         <main class="flex-1 overflow-auto overscroll-contain bg-muted/30 p-4 md:p-6">
