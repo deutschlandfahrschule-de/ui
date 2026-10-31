@@ -39,6 +39,7 @@ defmodule DfsUi.Styleguide do
   attr :css_path, :string, default: "/assets/css/app.css"
   attr :js_path, :string, default: "/assets/js/app.js"
   attr :app_name, :string, default: "App"
+  attr :csrf_token, :string, default: nil
 
   def document(assigns) do
     ~H"""
@@ -47,6 +48,7 @@ defmodule DfsUi.Styleguide do
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta :if={@csrf_token} name="csrf-token" content={@csrf_token} />
         <title>Styleguide · dfs_ui</title>
         <DfsUi.Layouts.head />
         <link rel="stylesheet" href={@css_path} />

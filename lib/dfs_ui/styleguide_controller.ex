@@ -20,7 +20,8 @@ defmodule DfsUi.StyleguideController do
     assigns = %{
       css_path: Keyword.get(opts, :css_path, "/assets/css/app.css"),
       js_path: Keyword.get(opts, :js_path, "/assets/js/app.js"),
-      app_name: Keyword.get(opts, :app_name, "App")
+      app_name: Keyword.get(opts, :app_name, "App"),
+      csrf_token: Plug.CSRFProtection.get_csrf_token()
     }
 
     body =
