@@ -42,7 +42,7 @@ defmodule DfsUi.Layouts do
     <link rel="alternate icon" href={"#{@base}/images/favicon.png"} type="image/png" />
     <link rel="apple-touch-icon" href={"#{@base}/images/apple-touch-icon.png"} />
     <script>
-      {Phoenix.HTML.raw(@script)}
+      <%= Phoenix.HTML.raw(@script) %>
     </script>
     """
   end
@@ -175,7 +175,7 @@ defmodule DfsUi.Layouts do
                 <.avatar user={@user} />
                 <span class="dfs-sidebar-expanded min-w-0 flex-1">
                   <span class="block truncate text-sm font-medium">{Format.display_name(@user)}</span>
-                  <span class="block truncate text-xs text-muted-foreground">{@user[:email]}</span>
+                  <span class="block truncate text-xs text-muted-foreground">{Map.get(@user, :email)}</span>
                 </span>
                 <.icon
                   name="chevrons-up-down"
@@ -185,7 +185,7 @@ defmodule DfsUi.Layouts do
             </:trigger>
             <.menu_label>
               <span class="block truncate font-medium">{Format.display_name(@user)}</span>
-              <span class="block truncate text-xs text-muted-foreground">{@user[:email]}</span>
+              <span class="block truncate text-xs text-muted-foreground">{Map.get(@user, :email)}</span>
             </.menu_label>
             {render_slot(@profile_menu)}
           </.dropdown_menu>
@@ -208,7 +208,10 @@ defmodule DfsUi.Layouts do
           <h1 class="min-w-0 flex-1 truncate text-base font-semibold md:text-lg">{@page_title}</h1>
           <div class="flex shrink-0 items-center gap-2">
             {render_slot(@header)}
-            <span :if={@user} class="hidden text-sm text-muted-foreground lg:inline">{@user[:email]}</span>
+            <span :if={@user} class="hidden text-sm text-muted-foreground lg:inline">{Map.get(
+              @user,
+              :email
+            )}</span>
           </div>
         </header>
         <main class="flex-1 overflow-auto overscroll-contain bg-muted/30 p-4 md:p-6">
