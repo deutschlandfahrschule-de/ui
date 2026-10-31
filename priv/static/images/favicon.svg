@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Deutschlandfahrschule Favicon</title>
+  <rect width="512" height="512" rx="94" fill="#ffffff"/>
+  <path fill="#263E50" d="M112 92H291C390 92 452 166 452 262C452 360 383 425 290 425H279L303 349C351 344 376 309 376 262C376 207 344 169 287 169H192V288L112 330Z"/>
+  <path fill="#526F86" d="M68 426C148 336 228 285 337 260C245 302 194 358 151 426Z"/>
+  <path fill="#7695AD" d="M182 426C230 337 277 286 351 258C306 302 287 358 279 426Z"/>
+  <path d="M221 398L238 374M249 351L264 331M280 312L291 298M307 284L316 277" stroke="#fff" stroke-width="10" stroke-linecap="square"/>
+</svg>

@@ -1,0 +1,182 @@
+/* Basis und Komponentenklassen der Deutschlandfahrschule-Oberflächen (dfs_ui).
+   Wird nach tokens.css und tailwind.theme.css in die app.css der App importiert. */
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+/* Open Sans, selbst gehostet aus priv/static der Bibliothek (App mountet /ui). */
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/ui/fonts/open-sans-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/ui/fonts/open-sans-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/ui/fonts/open-sans-latin-700-normal.woff2") format("woff2");
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    outline-color: color-mix(in oklab, var(--color-ring) 50%, transparent);
+  }
+  html {
+    font-family: var(--font-sans);
+    color-scheme: light;
+  }
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Menüpunkte der Sidebar: aktiv mit Balken links, Hover nur auf Zeigergeräten. */
+  .menu-item {
+    transition-property: color, background-color;
+    transition-duration: 150ms;
+  }
+  .menu-item-active {
+    position: relative;
+    background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+  .menu-item-active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.375rem;
+    bottom: 0.375rem;
+    width: 3px;
+    border-radius: 0 9999px 9999px 0;
+    background-color: var(--color-primary);
+  }
+  @media (hover: hover) {
+    .menu-item:hover {
+      background-color: color-mix(in oklab, var(--color-primary) 5%, transparent);
+      color: var(--color-primary);
+    }
+    .menu-item-active:hover {
+      background-color: color-mix(in oklab, var(--color-primary) 15%, transparent);
+    }
+  }
+  details.dfs-menu[open] > summary .menu-item {
+    background-color: var(--color-sidebar-accent);
+  }
+
+  /* Admin-Shell: Zustand am <html> (data-sidebar="collapsed", data-nav="open"). */
+  .dfs-sidebar-collapsed {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    html[data-sidebar="collapsed"] .dfs-sidebar {
+      width: var(--sidebar-width-collapsed);
+    }
+    html[data-sidebar="collapsed"] .dfs-sidebar-expanded {
+      display: none !important;
+    }
+    html[data-sidebar="collapsed"] .dfs-sidebar-collapsed {
+      display: flex;
+    }
+    html[data-sidebar="collapsed"] .dfs-nav-item {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    html[data-sidebar="collapsed"] .dfs-profile-panel {
+      left: 100%;
+      bottom: 0;
+      margin-left: 0.5rem;
+      margin-bottom: 0;
+    }
+    .dfs-nav-backdrop {
+      display: none;
+    }
+  }
+  @media (max-width: 767.98px) {
+    .dfs-sidebar {
+      transform: translateX(-100%);
+      transition: transform 200ms ease;
+    }
+    html[data-nav="open"] .dfs-sidebar {
+      transform: none;
+    }
+    .dfs-nav-backdrop {
+      display: none;
+    }
+    html[data-nav="open"] .dfs-nav-backdrop {
+      display: block;
+    }
+  }
+
+  /* Dialog: zentriert, abgedunkelter Hintergrund, kurze Einblendung. */
+  .dfs-dialog {
+    margin: auto;
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+  }
+  .dfs-dialog::backdrop {
+    background-color: rgb(0 0 0 / 0.5);
+  }
+  .dfs-dialog[open] {
+    animation: dfs-zoom-in 150ms ease-out;
+  }
+
+  /* Aufklappmenü */
+  details.dfs-menu:not([open]) > .dfs-menu-panel {
+    display: none;
+  }
+  details.dfs-menu[open] > .dfs-menu-panel {
+    animation: dfs-fade-in 120ms ease-out;
+  }
+
+  .dfs-fade-in {
+    animation: dfs-fade-in 200ms ease-out;
+  }
+
+  @keyframes dfs-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes dfs-zoom-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}

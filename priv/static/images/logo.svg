@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="260" viewBox="0 0 1600 260" role="img" aria-label="Deutschlandfahrschule Logo">
+<title>Deutschlandfahrschule</title>
+<g transform="translate(18 20)">
+<path fill="#263E50" fill-rule="evenodd" d="M30 15 H132 C196 15 225 58 225 111 C225 174 186 215 128 215 H112 L127 166 H139 C171 166 179 138 179 113 C179 83 164 64 131 64 H79 V149 L30 179 Z"/>
+<path fill="#55758C" d="M0 215 C50 152 106 118 181 105 C118 135 85 172 64 215 Z"/>
+<path fill="#7795AD" d="M78 215 C115 154 147 128 191 109 C157 146 145 178 140 215 Z"/>
+<path d="M112 205 C136 161 155 138 181 120" fill="none" stroke="white" stroke-width="6" stroke-dasharray="18 15"/>
+</g>
+<text x="273" y="162" font-family="Arial, Helvetica, sans-serif" font-size="91" font-weight="700" letter-spacing="-3" fill="#263E50">Deutschland<tspan fill="#7795AD">fahrschule</tspan></text>
+</svg>
