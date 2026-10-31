@@ -3,6 +3,10 @@
 
 const html = () => document.documentElement;
 
+// Dialoge, die ein LiveView-Hook steuert; die Delegation unten lässt sie in Ruhe.
+// (Kein DOM-Attribut, weil LiveView Attribute beim Patch zurücksetzt.)
+const liveDialogs = new WeakSet();
+
 function setSidebar(collapsed) {
   if (collapsed) html().setAttribute("data-sidebar", "collapsed");
   else html().removeAttribute("data-sidebar");
@@ -45,13 +49,13 @@ export function initDfsUi() {
     const opener = target.closest("[data-dialog-open]");
     if (opener) {
       const dialog = document.getElementById(opener.getAttribute("data-dialog-open"));
-      if (dialog && !dialog.open && !dialog.dataset.live) dialog.showModal();
+      if (dialog && !dialog.open && !liveDialogs.has(dialog)) dialog.showModal();
       return;
     }
     const closer = target.closest("[data-dialog-close]");
     if (closer) {
       const dialog = closer.closest("dialog");
-      if (dialog && dialog.open && !dialog.dataset.live) dialog.close();
+      if (dialog && dialog.open && !liveDialogs.has(dialog)) dialog.close();
       return;
     }
     if (target.closest("[data-dismiss]")) {
@@ -79,7 +83,7 @@ export function initDfsUi() {
   // Dialoge ohne Hook: Klick auf den Hintergrund schließt.
   document.addEventListener("click", (event) => {
     const dialog = event.target;
-    if (dialog instanceof HTMLDialogElement && dialog.open && !dialog.dataset.live) {
+    if (dialog instanceof HTMLDialogElement && dialog.open && !liveDialogs.has(dialog)) {
       const rect = dialog.getBoundingClientRect();
       const inside =
         event.clientX >= rect.left && event.clientX <= rect.right &&
@@ -109,7 +113,7 @@ export const dfsUiDom = {
 /** Dialog-Hook: der Server besitzt den Zustand (data-open), der Browser ruft showModal()/close(). */
 const DfsUiDialog = {
   mounted() {
-    this.el.dataset.live = "true";
+    liveDialogs.add(this.el);
     this.shown = false;
     this.sync();
     this.el.addEventListener("cancel", (event) => {
