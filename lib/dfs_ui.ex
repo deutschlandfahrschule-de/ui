@@ -25,9 +25,9 @@ defmodule DfsUi do
       @import "../../deps/dfs_ui/priv/static/css/dfs_ui.css";
 
       # assets/js/app.js
-      import {DfsUiHooks, initDfsUi} from "dfs_ui"
+      import {DfsUiHooks, dfsUiDom, initDfsUi} from "dfs_ui"
       initDfsUi()
-      const liveSocket = new LiveSocket("/live", Socket, {hooks: {...DfsUiHooks}, ...})
+      const liveSocket = new LiveSocket("/live", Socket, {hooks: {...DfsUiHooks}, dom: dfsUiDom, ...})
 
   Im `root.html.heex` ersetzt `<DfsUi.Layouts.head />` Favicon-Links und das Skript für
   Dunkelmodus und Sidebar-Zustand. Der Styleguide liegt unter `DfsUi.StyleguideController`.

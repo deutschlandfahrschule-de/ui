@@ -92,10 +92,25 @@ export function initDfsUi() {
   window.addEventListener("phx:page-loading-stop", () => html().removeAttribute("data-nav"));
 }
 
+/**
+ * DOM-Callback für die LiveSocket (`dom: dfsUiDom`): bewahrt beim Patch den Browser-Zustand
+ * `open` von <dialog> und <details>. Ohne ihn entfernt LiveView das Attribut, ein modaler
+ * Dialog bliebe dann unsichtbar im Top-Layer und blockiert alle Klicks.
+ */
+export const dfsUiDom = {
+  onBeforeElUpdated(from, to) {
+    if ((from.tagName === "DIALOG" || from.tagName === "DETAILS") && from.open && !to.hasAttribute("open")) {
+      to.setAttribute("open", "");
+    }
+    return true;
+  },
+};
+
 /** Dialog-Hook: der Server besitzt den Zustand (data-open), der Browser ruft showModal()/close(). */
 const DfsUiDialog = {
   mounted() {
     this.el.dataset.live = "true";
+    this.shown = false;
     this.sync();
     this.el.addEventListener("cancel", (event) => {
       event.preventDefault();
@@ -114,12 +129,21 @@ const DfsUiDialog = {
     this.sync();
   },
   destroyed() {
-    if (this.el.open) this.el.close();
+    this.closeModal();
   },
   sync() {
     const wanted = this.el.dataset.open === "true";
-    if (wanted && !this.el.open) this.el.showModal();
-    if (!wanted && this.el.open) this.el.close();
+    if (wanted && !this.el.open) {
+      this.el.showModal();
+      this.shown = true;
+    }
+    if (!wanted && (this.el.open || this.shown)) this.closeModal();
+  },
+  // close() wirkt nur mit gesetztem open-Attribut; sonst bliebe der Dialog im Top-Layer.
+  closeModal() {
+    if (!this.el.hasAttribute("open")) this.el.setAttribute("open", "");
+    this.el.close();
+    this.shown = false;
   },
   requestClose() {
     const event = this.el.dataset.onClose || "close_dialog";
@@ -131,4 +155,4 @@ const DfsUiDialog = {
 
 export const DfsUiHooks = { DfsUiDialog };
 
-export default { DfsUiHooks, initDfsUi };
+export default { DfsUiHooks, dfsUiDom, initDfsUi };

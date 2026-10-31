@@ -940,8 +940,8 @@ defmodule DfsUi.Components do
 
   @doc """
   Aufklappmenü auf Basis von `<details>` (ohne JS lauffähig; `dfs_ui.js` schließt es bei Klick
-  außerhalb). Innerhalb von LiveViews wird das Element vom Patch ausgenommen, weil der
-  Browser-Zustand `open` sonst verloren geht; die Menüpunkte sind deshalb statisch.
+  außerhalb). In LiveViews bewahrt `dfsUiDom` (LiveSocket-Option `dom`) den Zustand `open`
+  über Patches hinweg.
 
       <.dropdown_menu id="profile-menu" side="top">
         <:trigger>…</:trigger>
@@ -959,7 +959,7 @@ defmodule DfsUi.Components do
 
   def dropdown_menu(assigns) do
     ~H"""
-    <details id={@id} class={["dfs-menu relative", @class]} phx-update="ignore">
+    <details id={@id} class={["dfs-menu relative", @class]}>
       <summary class="list-none cursor-pointer [&::-webkit-details-marker]:hidden">
         {render_slot(@trigger)}
       </summary>

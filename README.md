@@ -39,11 +39,11 @@ plug Plug.Static, at: "/ui", from: {:dfs_ui, "priv/static"}, gzip: false, only: 
 import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
-import {DfsUiHooks, initDfsUi} from "dfs_ui"
+import {DfsUiHooks, dfsUiDom, initDfsUi} from "dfs_ui"
 
 initDfsUi()
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-const liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: {...DfsUiHooks}})
+const liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: {...DfsUiHooks}, dom: dfsUiDom})
 liveSocket.connect()
 ```
 
