@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3 – 2026-11-01
+
+- Logo ohne leeren Rand rechts (wie v0.2.1), damit zentrierte Logos mittig sitzen.
+
 ## v0.1.2 – 2026-10-31
 
 Admin-Shell: die E-Mail des Nutzers steht nur noch im Profilblock der Sidebar, nicht mehr
