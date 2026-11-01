@@ -33,6 +33,15 @@ defmodule DfsUi do
   Dunkelmodus und Sidebar-Zustand. Der Styleguide liegt unter `DfsUi.StyleguideController`.
   """
 
-  @doc "Version der Bibliothek (für den Styleguide und Fehlermeldungen)."
-  def version, do: Application.spec(:dfs_ui, :vsn) |> to_string()
+  @version Mix.Project.config()[:version]
+
+  @doc "Version der Bibliothek (aus mix.exs)."
+  def version, do: @version
+
+  @doc """
+  Adresse einer Datei aus `priv/static` der Bibliothek mit Versionskennung, z. B.
+  `asset_path("/images/logo.svg")` → `"/ui/images/logo.svg?vsn=0.1.4"`, damit Zwischenspeicher
+  wie Cloudflare neue Fassungen sofort holen.
+  """
+  def asset_path(path, base \\ "/ui"), do: base <> path <> "?vsn=" <> @version
 end

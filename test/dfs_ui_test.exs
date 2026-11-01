@@ -51,4 +51,20 @@ defmodule DfsUiTest do
   end
 
   defp block(text), do: [%{inner_block: fn _, _ -> text end}]
+
+  describe "Versionskennung der Dateien unter /ui" do
+    test "Kopf, Logo und Schriften tragen die Version" do
+      assert DfsUi.asset_path("/images/logo.svg") == "/ui/images/logo.svg?vsn=#{DfsUi.version()}"
+      head = render_component(&DfsUi.Layouts.head/1, %{})
+      assert head =~ ~s(href="/ui/images/favicon.svg?vsn=#{DfsUi.version()}")
+
+      css = File.read!(Path.expand("../priv/static/css/dfs_ui.css", __DIR__))
+
+      kennungen =
+        Regex.scan(~r/woff2\?vsn=([0-9.]+)/, css, capture: :all_but_first) |> List.flatten()
+
+      assert length(kennungen) == 3
+      assert Enum.uniq(kennungen) == [DfsUi.version()]
+    end
+  end
 end

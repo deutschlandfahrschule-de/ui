@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.4 – 2026-11-01
+
+- Dateien unter `/ui` tragen `?vsn=<Version>` (`DfsUi.asset_path/2`), wie v0.2.2.
+
 ## v0.1.3 – 2026-11-01
 
 - Logo ohne leeren Rand rechts (wie v0.2.1), damit zentrierte Logos mittig sitzen.

@@ -9,21 +9,21 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/ui/fonts/open-sans-latin-400-normal.woff2") format("woff2");
+  src: url("/ui/fonts/open-sans-latin-400-normal.woff2?vsn=0.1.4") format("woff2");
 }
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("/ui/fonts/open-sans-latin-600-normal.woff2") format("woff2");
+  src: url("/ui/fonts/open-sans-latin-600-normal.woff2?vsn=0.1.4") format("woff2");
 }
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/ui/fonts/open-sans-latin-700-normal.woff2") format("woff2");
+  src: url("/ui/fonts/open-sans-latin-700-normal.woff2?vsn=0.1.4") format("woff2");
 }
 
 @layer base {
