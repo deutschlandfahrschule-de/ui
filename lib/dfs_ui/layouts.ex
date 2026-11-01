@@ -49,7 +49,9 @@ defmodule DfsUi.Layouts do
 
   @doc """
   Admin-Shell. `nav` ist eine Liste von Maps mit `label`, `icon`, `active` und `href` oder
-  `navigate`, optional `group` (Gruppenüberschrift in Kapitälchen).
+  `navigate`, optional `group` (Gruppenüberschrift in Kapitälchen). Haben die Einträge einer
+  Gruppe zusätzlich `group_icon`, wird die Gruppe aufklappbar (Icon, Name, Pfeil); offen ist sie
+  anfangs, wenn sie den aktiven Eintrag enthält. Für lange Menüs wie im LMS.
 
       <DfsUi.Layouts.admin flash={@flash} page_title="Nutzer" nav={nav(:users)} user={@current_user}>
         <:profile_menu>
@@ -138,25 +140,33 @@ defmodule DfsUi.Layouts do
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto px-2 pt-2 pb-4" aria-label="Hauptnavigation">
-          <%= for group <- @groups do %>
-            <p
-              :if={List.first(group)[:group]}
-              class="dfs-sidebar-expanded px-3 pt-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
-            >
-              {List.first(group)[:group]}
-            </p>
-            <.button
-              :for={item <- group}
-              href={item[:href]}
-              navigate={item[:navigate]}
-              variant={if item[:active], do: "nav_active", else: "nav"}
-              aria-current={if item[:active], do: "page"}
-              title={item.label}
-              class="dfs-nav-item"
-            >
-              <.icon name={item[:icon] || "circle"} />
-              <span class="dfs-sidebar-expanded flex-1 truncate text-left">{item.label}</span>
-            </.button>
+          <%= for group <- @groups, first = List.first(group) do %>
+            <%= if first[:group] && first[:group_icon] do %>
+              <details class="dfs-nav-group group/nav" open={Enum.any?(group, & &1[:active])}>
+                <summary
+                  class="dfs-nav-item menu-item flex h-10 cursor-pointer list-none items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground select-none [&::-webkit-details-marker]:hidden"
+                  title={first.group}
+                >
+                  <.icon name={first.group_icon} />
+                  <span class="dfs-sidebar-expanded flex-1 truncate">{first.group}</span>
+                  <.icon
+                    name="chevron-right"
+                    class="dfs-sidebar-expanded h-4 w-4 transition-transform group-open/nav:rotate-90"
+                  />
+                </summary>
+                <div class="dfs-nav-group-items mt-1 space-y-1 pl-3">
+                  <.nav_item :for={item <- group} item={item} />
+                </div>
+              </details>
+            <% else %>
+              <p
+                :if={first[:group]}
+                class="dfs-sidebar-expanded px-3 pt-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+              >
+                {first[:group]}
+              </p>
+              <.nav_item :for={item <- group} item={item} />
+            <% end %>
           <% end %>
         </nav>
 
@@ -218,6 +228,24 @@ defmodule DfsUi.Layouts do
         </main>
       </div>
     </div>
+    """
+  end
+
+  attr :item, :map, required: true
+
+  defp nav_item(assigns) do
+    ~H"""
+    <.button
+      href={@item[:href]}
+      navigate={@item[:navigate]}
+      variant={if @item[:active], do: "nav_active", else: "nav"}
+      aria-current={if @item[:active], do: "page"}
+      title={@item.label}
+      class="dfs-nav-item"
+    >
+      <.icon name={@item[:icon] || "circle"} />
+      <span class="dfs-sidebar-expanded flex-1 truncate text-left">{@item.label}</span>
+    </.button>
     """
   end
 

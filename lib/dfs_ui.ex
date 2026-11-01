@@ -6,7 +6,7 @@ defmodule DfsUi do
   Einbindung in einer Phoenix-App:
 
       # mix.exs
-      {:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.1.2"}
+      {:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.2.0"}
 
       # lib/my_app_web.ex, in html_helpers/0 und live_view/0
       import DfsUi.Components

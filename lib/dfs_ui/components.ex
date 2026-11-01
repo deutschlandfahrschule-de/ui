@@ -311,9 +311,18 @@ defmodule DfsUi.Components do
     """
   end
 
-  @doc "Fehlermeldung unter einem Feld."
+  @doc "Fehlermeldung unter einem Feld; `compact` klein mit Warn-Icon (für dichte Formulare)."
+  attr :compact, :boolean, default: false
   attr :class, :any, default: nil
   slot :inner_block, required: true
+
+  def error(%{compact: true} = assigns) do
+    ~H"""
+    <p class={["flex items-center gap-1 text-xs text-destructive", @class]}>
+      <.icon name="circle-alert" class="h-3 w-3" /> {render_slot(@inner_block)}
+    </p>
+    """
+  end
 
   def error(assigns) do
     ~H"""
@@ -342,6 +351,7 @@ defmodule DfsUi.Components do
   attr :multiple, :boolean, default: false
   attr :class, :any, default: nil, doc: "Klassen des umschließenden Blocks"
   attr :input_class, :any, default: nil
+  attr :compact_errors, :boolean, default: false, doc: "Fehler klein mit Icon (siehe `error/1`)"
 
   attr :rest, :global,
     include:
@@ -358,13 +368,22 @@ defmodule DfsUi.Components do
     |> input()
   end
 
-  def input(%{type: "hidden"} = assigns) do
+  # Ohne FormField dürfen `name`, `value` und `options` fehlen (leeres Feld).
+  def input(assigns) do
+    assigns
+    |> assign_new(:name, fn -> nil end)
+    |> assign_new(:value, fn -> nil end)
+    |> assign_new(:options, fn -> [] end)
+    |> render_input()
+  end
+
+  defp render_input(%{type: "hidden"} = assigns) do
     ~H"""
     <input type="hidden" id={@id} name={@name} value={@value} {@rest} />
     """
   end
 
-  def input(%{type: "checkbox"} = assigns) do
+  defp render_input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
         Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
@@ -386,12 +405,12 @@ defmodule DfsUi.Components do
         <span>{@label}</span>
       </label>
       <p :if={@hint} class="text-xs text-muted-foreground">{@hint}</p>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} compact={@compact_errors}>{msg}</.error>
     </div>
     """
   end
 
-  def input(%{type: "select"} = assigns) do
+  defp render_input(%{type: "select"} = assigns) do
     ~H"""
     <div class={["space-y-2", @class]}>
       <.label :if={@label} for={@id}>{@label}</.label>
@@ -411,12 +430,12 @@ defmodule DfsUi.Components do
         {Phoenix.HTML.Form.options_for_select(@options, @value)}
       </select>
       <p :if={@hint} class="text-xs text-muted-foreground">{@hint}</p>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} compact={@compact_errors}>{msg}</.error>
     </div>
     """
   end
 
-  def input(%{type: "textarea"} = assigns) do
+  defp render_input(%{type: "textarea"} = assigns) do
     ~H"""
     <div class={["space-y-2", @class]}>
       <.label :if={@label} for={@id}>{@label}</.label>
@@ -426,19 +445,19 @@ defmodule DfsUi.Components do
         aria-invalid={@errors != [] && "true"}
         class={[
           input_class(),
-          "h-auto min-h-24",
+          "h-auto min-h-20 resize-y",
           @errors != [] && "border-destructive",
           @input_class
         ]}
         {@rest}
       >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       <p :if={@hint} class="text-xs text-muted-foreground">{@hint}</p>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} compact={@compact_errors}>{msg}</.error>
     </div>
     """
   end
 
-  def input(assigns) do
+  defp render_input(assigns) do
     ~H"""
     <div class={["space-y-2", @class]}>
       <.label :if={@label} for={@id}>{@label}</.label>
@@ -452,7 +471,7 @@ defmodule DfsUi.Components do
         {@rest}
       />
       <p :if={@hint} class="text-xs text-muted-foreground">{@hint}</p>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} compact={@compact_errors}>{msg}</.error>
     </div>
     """
   end
@@ -464,23 +483,288 @@ defmodule DfsUi.Components do
       "flex h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-base text-input-foreground ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 
   @doc """
-  Übersetzt Ecto-Fehler (`{msg, opts}`) mit Interpolation. Apps mit Gettext konfigurieren
-  `config :dfs_ui, translate_error: {MyAppWeb.Gettext, :translate_error}`; die Funktion
-  bekommt `{msg, opts}`.
+  Übersetzt Ecto-Fehler (`{msg, opts}`) mit Interpolation. Eingesetzt werden nur Platzhalter, die
+  im Text stehen (`%{count}` …), damit Optionen wie `type: {:array, :string}` nicht stören.
+  Apps mit Gettext konfigurieren `config :dfs_ui, translate_error: {MyAppWeb.Gettext, :translate_error}`;
+  die Funktion bekommt `{msg, opts}`.
   """
   def translate_error({msg, opts}) do
     case Application.get_env(:dfs_ui, :translate_error) do
-      {mod, fun} ->
-        apply(mod, fun, [{msg, opts}])
-
-      _ ->
-        Enum.reduce(opts, msg, fn {key, value}, acc ->
-          String.replace(acc, "%{#{key}}", to_string(value))
-        end)
+      {mod, fun} -> apply(mod, fun, [{msg, opts}])
+      _ -> interpolate(msg, opts)
     end
   end
 
   def translate_error(msg) when is_binary(msg), do: msg
+
+  defp interpolate(msg, opts) do
+    Regex.replace(~r/%{(\w+)}/, msg, fn placeholder, key ->
+      case Enum.find(opts, fn {k, _} -> to_string(k) == key end) do
+        {_, value} -> interpolation_value(value)
+        nil -> placeholder
+      end
+    end)
+  end
+
+  defp interpolation_value(value) when is_binary(value) or is_number(value) or is_atom(value),
+    do: to_string(value)
+
+  defp interpolation_value(value), do: inspect(value)
+
+  @doc """
+  Formularfeld aus einem `Phoenix.HTML.FormField` für dichte Formulare: wie `input/1` mit
+  `field`, Fehler aber klein mit Icon und erst nach einem Speicherversuch (`used_input?/1`).
+  `type`: text, number, date, email, password, url, search, textarea, select, checkbox.
+  Für `select` kommen die Optionen als `options` (Liste `{label, value}` oder Werte) und
+  optional `prompt`; `checkbox` zeigt das Label rechts neben dem Kästchen.
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :type, :string, default: "text"
+  attr :label, :string, default: nil
+  attr :hint, :string, default: nil
+  attr :options, :list, default: []
+  attr :prompt, :string, default: nil
+  attr :rows, :integer, default: 4, doc: "für textarea"
+  attr :class, :any, default: nil
+
+  attr :rest, :global,
+    include:
+      ~w(accept autocomplete autofocus disabled form inputmode list max maxlength min minlength multiple pattern placeholder readonly required step)
+
+  def form_field(assigns) do
+    ~H"""
+    <.input
+      field={@field}
+      type={@type}
+      label={@label}
+      hint={@hint}
+      options={@options}
+      prompt={@prompt}
+      rows={@type == "textarea" && @rows}
+      class={@class}
+      compact_errors
+      {@rest}
+    />
+    """
+  end
+
+  @doc "Übersetzte Fehler eines Felds, klein mit Icon (erst nach einem Speicherversuch)."
+  attr :field, Phoenix.HTML.FormField, required: true
+
+  def field_errors(assigns) do
+    %{field: field} = assigns
+    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+    assigns = assign(assigns, :messages, Enum.map(errors, &translate_error/1))
+
+    ~H"""
+    <.error :for={msg <- @messages} compact>{msg}</.error>
+    """
+  end
+
+  @doc """
+  Alle Fehler eines Formulars als Hinweisbox, z. B. für Fehler ohne eigenes Feld. Bei einem
+  Ecto-Changeset auch verschachtelte Fehler (Embeds, Assoziationen); erscheint erst, wenn der
+  Changeset eine `action` hat (also nach einem Speicherversuch).
+  """
+  attr :form, Phoenix.HTML.Form, required: true
+  attr :title, :string, default: "Bitte prüfe deine Eingaben."
+
+  attr :labels, :map,
+    default: %{},
+    doc: "Feldname (Atom) -> Beschriftung, z. B. %{name: \"Name\"}"
+
+  attr :class, :any, default: nil
+
+  def form_errors(assigns) do
+    labels = assigns.labels
+
+    messages =
+      for {path, msgs} <- form_messages(assigns.form) do
+        label = Enum.map_join(path, " › ", &Map.get(labels, &1, humanize_field(&1)))
+        "#{label}: #{Enum.join(msgs, ", ")}"
+      end
+
+    assigns = assign(assigns, :messages, messages)
+
+    ~H"""
+    <.alert :if={@messages != []} variant="destructive" title={@title} class={@class}>
+      <ul class="list-disc pl-4">
+        <li :for={msg <- @messages}>{msg}</li>
+      </ul>
+    </.alert>
+    """
+  end
+
+  # Liste von {Pfad, Meldungen}; Pfad sind Feldnamen bzw. Positionen in Listen.
+  defp form_messages(%Phoenix.HTML.Form{source: %{__struct__: Ecto.Changeset} = changeset}) do
+    if changeset.action do
+      changeset |> Ecto.Changeset.traverse_errors(&translate_error/1) |> flatten_errors([])
+    else
+      []
+    end
+  end
+
+  defp form_messages(%Phoenix.HTML.Form{errors: errors}) do
+    errors
+    |> Enum.group_by(&elem(&1, 0), &translate_error(elem(&1, 1)))
+    |> Enum.map(fn {field, msgs} -> {[field], msgs} end)
+  end
+
+  defp flatten_errors(errors, path) when is_map(errors) do
+    Enum.flat_map(errors, fn {field, value} -> flatten_errors(value, path ++ [field]) end)
+  end
+
+  defp flatten_errors([msg | _] = msgs, path) when is_binary(msg), do: [{path, msgs}]
+
+  defp flatten_errors(list, path) when is_list(list) do
+    list
+    |> Enum.with_index(1)
+    |> Enum.flat_map(fn {value, i} -> flatten_errors(value, path ++ [i]) end)
+  end
+
+  defp humanize_field(field) when is_integer(field), do: "Nr. #{field}"
+  defp humanize_field(field), do: field |> to_string() |> String.replace("_", " ")
+
+  @doc "Mehrzeiliges Feld ohne FormField (Name/Wert direkt) über `input/1`."
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :label, :string, default: nil
+  attr :value, :string, default: nil
+  attr :hint, :string, default: nil
+  attr :errors, :list, default: []
+  attr :rows, :integer, default: 4
+  attr :class, :any, default: nil
+
+  attr :rest, :global,
+    include: ~w(placeholder required maxlength disabled readonly autofocus form)
+
+  def textarea(assigns) do
+    ~H"""
+    <.input
+      type="textarea"
+      id={@id}
+      name={@name}
+      label={@label}
+      value={@value}
+      hint={@hint}
+      errors={@errors}
+      rows={@rows}
+      class={@class}
+      {@rest}
+    />
+    """
+  end
+
+  @doc """
+  Kästchen ohne FormField. Sendet `value` (Standard `"true"`) und, solange `hidden_false`
+  gesetzt ist, sonst `"false"`; für Mehrfachauswahl (`name="ids[]"`) `hidden_false={false}`.
+  """
+  attr :id, :string, required: true
+  attr :name, :string, required: true
+  attr :label, :string, default: nil
+  attr :checked, :boolean, default: false
+  attr :value, :string, default: "true"
+  attr :hint, :string, default: nil
+  attr :hidden_false, :boolean, default: true, doc: "verstecktes Feld mit false mitsenden"
+  attr :class, :any, default: nil
+  attr :rest, :global, include: ~w(disabled form)
+
+  def checkbox(assigns) do
+    ~H"""
+    <div class={["space-y-1", @class]}>
+      <label class="flex cursor-pointer items-center gap-2 text-sm">
+        <input
+          :if={@hidden_false}
+          type="hidden"
+          name={@name}
+          value="false"
+          disabled={@rest[:disabled]}
+        />
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value={@value}
+          checked={@checked}
+          class="size-4 shrink-0 rounded border border-input accent-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          {@rest}
+        />
+        <span :if={@label}>{@label}</span>
+      </label>
+      <p :if={@hint} class="text-xs text-muted-foreground">{@hint}</p>
+    </div>
+    """
+  end
+
+  @doc """
+  Dateiauswahl im Stil von `input/1` für `allow_upload/3`: Feld, Hinweis, Liste der gewählten
+  Dateien mit Fortschritt und Entfernen-Knopf (Event `cancel_event` mit `ref`) und deutsche
+  Fehlermeldungen (`upload_error/2`).
+  """
+  attr :upload, Phoenix.LiveView.UploadConfig, required: true
+  attr :label, :string, required: true
+  attr :hint, :string, default: nil
+  attr :cancel_event, :string, default: "cancel_upload"
+  attr :target, :any, default: nil, doc: "phx-target für das Entfernen-Event"
+  attr :class, :any, default: nil
+
+  def upload_input(assigns) do
+    ~H"""
+    <div class={["space-y-2", @class]}>
+      <.label for={@upload.ref}>{@label}</.label>
+      <.live_file_input
+        upload={@upload}
+        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm text-input-foreground ring-offset-background outline-none file:mr-3 file:h-7 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:text-sm file:font-medium file:text-secondary-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      />
+      <p :if={@hint} class="text-xs text-muted-foreground">{@hint}</p>
+      <ul :if={@upload.entries != []} class="space-y-1 text-sm">
+        <li
+          :for={entry <- @upload.entries}
+          class="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-1.5"
+        >
+          <span class="flex min-w-0 items-center gap-2">
+            <.icon name="file-text" class="h-4 w-4 text-muted-foreground" />
+            <span class="truncate">{entry.client_name}</span>
+            <span :if={entry.progress > 0} class="text-xs text-muted-foreground">
+              {entry.progress} %
+            </span>
+          </span>
+          <button
+            type="button"
+            phx-click={@cancel_event}
+            phx-value-ref={entry.ref}
+            phx-target={@target}
+            class="-m-1 rounded-md p-1 text-muted-foreground hover:text-foreground"
+            aria-label={"#{entry.client_name} entfernen"}
+          >
+            <.icon name="x" class="h-4 w-4" />
+          </button>
+          <.error :for={err <- Phoenix.Component.upload_errors(@upload, entry)} class="w-full">
+            {upload_error(err, @upload)}
+          </.error>
+        </li>
+      </ul>
+      <.error :for={err <- Phoenix.Component.upload_errors(@upload)}>
+        {upload_error(err, @upload)}
+      </.error>
+    </div>
+    """
+  end
+
+  @doc "Fehler eines LiveView-Uploads als deutscher Satz."
+  def upload_error(:too_large, upload),
+    do: "Die Datei ist zu groß (höchstens #{Format.bytes(upload.max_file_size)})."
+
+  def upload_error(:not_accepted, %{accept: accept}) when is_binary(accept),
+    do: "Dieser Dateityp ist nicht erlaubt (erlaubt: #{String.replace(accept, ",", ", ")})."
+
+  def upload_error(:not_accepted, _upload), do: "Dieser Dateityp ist nicht erlaubt."
+
+  def upload_error(:too_many_files, upload),
+    do: "Höchstens #{upload.max_entries} Dateien auf einmal."
+
+  def upload_error(:external_client_failure, _upload), do: "Die Übertragung ist fehlgeschlagen."
+  def upload_error(other, _upload), do: to_string(other)
 
   ## Seitengerüst
 
@@ -1056,6 +1340,145 @@ defmodule DfsUi.Components do
     >
       {Format.initials(@user)}
     </span>
+    """
+  end
+
+  ## Chips, Fortschritt, Code
+
+  @doc """
+  Filter-Chip als Link (`patch`, `navigate` oder `href`), ohne Ziel als Button (z. B. mit
+  `phx-click`). `count` zeigt eine Anzahl, `tone` färbt den Zähler.
+  """
+  attr :patch, :string, default: nil
+  attr :navigate, :string, default: nil
+  attr :href, :string, default: nil
+  attr :active, :boolean, default: false
+  attr :count, :integer, default: nil
+  attr :tone, :string, default: nil, values: [nil | Map.keys(@tone_classes)]
+  attr :class, :any, default: nil
+  attr :rest, :global, include: ~w(disabled title)
+  slot :inner_block, required: true
+
+  def chip(assigns) do
+    assigns =
+      assign(assigns,
+        classes: [
+          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors cursor-pointer",
+          if(assigns.active,
+            do: "border-primary bg-primary text-primary-foreground",
+            else:
+              "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          ),
+          assigns.class
+        ]
+      )
+
+    ~H"""
+    <.link
+      :if={@patch || @navigate || @href}
+      patch={@patch}
+      navigate={@navigate}
+      href={@href}
+      aria-current={@active && "true"}
+      class={@classes}
+      {@rest}
+    >
+      {render_slot(@inner_block)}<.chip_count count={@count} active={@active} tone={@tone} />
+    </.link>
+    <button
+      :if={!(@patch || @navigate || @href)}
+      type="button"
+      aria-pressed={to_string(@active)}
+      class={@classes}
+      {@rest}
+    >
+      {render_slot(@inner_block)}<.chip_count count={@count} active={@active} tone={@tone} />
+    </button>
+    """
+  end
+
+  defp chip_count(assigns) do
+    ~H"""
+    <span
+      :if={@count}
+      class={[
+        "rounded-full px-1.5 text-[10px] tabular-nums",
+        cond do
+          @active -> "bg-primary-foreground/20"
+          @tone -> tone_class(@tone, "soft")
+          true -> "bg-muted"
+        end
+      ]}
+    >
+      {Format.number(@count)}
+    </span>
+    """
+  end
+
+  @bar_classes %{
+    "neutral" => "bg-tone-neutral-solid",
+    "info" => "bg-tone-info-solid",
+    "success" => "bg-tone-success-solid",
+    "warning" => "bg-tone-warning-solid",
+    "danger" => "bg-tone-danger-solid",
+    "brand" => "bg-tone-brand-solid",
+    "accent" => "bg-tone-accent-solid"
+  }
+
+  @doc "Fortschrittsbalken: `value` von `max` (Standard 100) mit Prozentangabe rechts."
+  attr :value, :any, required: true
+  attr :max, :any, default: 100
+  attr :tone, :string, default: "brand", values: Map.keys(@bar_classes)
+  attr :label, :string, default: nil, doc: "Beschriftung für Screenreader"
+  attr :show_value, :boolean, default: true
+  attr :class, :any, default: nil
+
+  def progress(assigns) do
+    pct =
+      case {assigns.value, assigns.max} do
+        {v, m} when is_number(v) and is_number(m) and m > 0 ->
+          min(100, max(0, round(v / m * 100)))
+
+        _ ->
+          0
+      end
+
+    assigns = assign(assigns, pct: pct, bar_class: @bar_classes[assigns.tone])
+
+    ~H"""
+    <div class={["flex items-center gap-2", @class]}>
+      <div
+        class="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuenow={@pct}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label={@label}
+      >
+        <div class={["h-full rounded-full transition-[width]", @bar_class]} style={"width: #{@pct}%"}>
+        </div>
+      </div>
+      <span :if={@show_value} class="w-10 text-right text-xs tabular-nums text-muted-foreground">
+        {@pct} %
+      </span>
+    </div>
+    """
+  end
+
+  @doc "Code oder Rohtext in einer Box (umbricht lange Zeilen); für kurze Werte `code/1`."
+  attr :text, :string, default: nil
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def code_block(assigns) do
+    ~H"""
+    <pre
+      class={[
+        "overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs break-words whitespace-pre-wrap",
+        @class
+      ]}
+      {@rest}
+    >{@text}</pre>
     """
   end
 

@@ -9,7 +9,7 @@ Icons, HEEx-Komponenten, Layouts und ein Styleguide. Umsetzung der
 
 ```elixir
 # mix.exs
-{:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.1.2"}
+{:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.2.0"}
 ```
 
 ```elixir
@@ -77,7 +77,11 @@ end
 | `button` | Button oder Link im Button-Stil; Varianten default, secondary, outline, ghost, destructive, link, nav |
 | `badge`, `status_badge` | Tone-Badges; Status → Tone und Beschriftung zentral in `DfsUi.Tones` |
 | `alert`, `flash_group` | Hinweise und Flash-Meldungen |
-| `input`, `label`, `error` | Felder mit Label, Hinweis und Fehlern; `field={@form[:x]}` oder `name`/`value` |
+| `input`, `label`, `error` | Felder mit Label, Hinweis und Fehlern; `field={@form[:x]}` oder `name`/`value` (beides optional) |
+| `form_field`, `field_errors`, `form_errors` | Dichte Formulare aus `FormField` (kleine Fehler mit Icon), Fehlersammlung als Hinweisbox (auch verschachtelte Changeset-Fehler) |
+| `textarea`, `checkbox` | Felder ohne FormField; `checkbox` mit eigenem `value` für Mehrfachauswahl (`hidden_false={false}`) |
+| `upload_input` | Dateiauswahl für LiveView-Uploads mit Dateiliste, Fortschritt, Entfernen und deutschen Fehlern (`upload_error/2`) |
+| `chip`, `progress`, `code_block` | Filter-Chip mit Zähler, Fortschrittsbalken, Code-/Rohtext-Box |
 | `admin_page`, `page_header`, `section`, `stat_card` | Seitengerüst, Detailkopf, betitelte Karte, Kennzahl |
 | `table`, `pager`, `empty_state`, `kv_list` | Listen und Stammdaten |
 | `tabs` | Tab-Leiste aus Links (`href` oder `patch`) |
@@ -85,8 +89,13 @@ end
 | `dropdown_menu`, `menu_label`, `menu_item` | Aufklappmenü auf `<details>`-Basis |
 | `avatar`, `separator`, `code` | Kleinteile |
 
-Layouts: `DfsUi.Layouts.admin` (Shell mit Sidebar und Profilmenü), `auth` (Login), `topbar`
-(Kontoseiten), `head` (gemeinsamer HTML-Kopf). Formatierer: `DfsUi.Format`.
+Layouts: `DfsUi.Layouts.admin` (Shell mit Sidebar und Profilmenü; Navigationsgruppen mit
+`group_icon` sind aufklappbar), `auth` (Login), `topbar` (Kontoseiten), `head` (gemeinsamer
+HTML-Kopf). Formatierer: `DfsUi.Format`.
+
+Fehlertexte: `translate_error/1` setzt nur Platzhalter ein, die im Text stehen (Ecto-Optionen
+wie `type: {:array, :string}` stören nicht); eigene Übersetzung über
+`config :dfs_ui, translate_error: {MyAppWeb.Gettext, :translate_error}`.
 
 ## Dialog in einer LiveView
 

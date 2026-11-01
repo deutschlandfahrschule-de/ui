@@ -108,6 +108,14 @@
       padding-left: 0;
       padding-right: 0;
     }
+    /* Aufklappbare Gruppen eingeklappt: Einträge ohne Einzug, offene Gruppe mit Trennlinie. */
+    html[data-sidebar="collapsed"] .dfs-nav-group-items {
+      padding-left: 0;
+    }
+    html[data-sidebar="collapsed"] .dfs-nav-group[open] {
+      border-bottom: 1px solid var(--color-sidebar-border);
+      padding-bottom: 0.25rem;
+    }
     /* Eingeklappt öffnet das Profilmenü neben der Sidebar (Utilities überstimmen, daher !important). */
     html[data-sidebar="collapsed"] .dfs-profile-panel {
       left: 100% !important;

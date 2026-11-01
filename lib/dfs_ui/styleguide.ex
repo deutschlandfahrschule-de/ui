@@ -13,6 +13,21 @@ defmodule DfsUi.Styleguide do
     %{label: "Übersicht", icon: "layout-dashboard", href: "#", active: true},
     %{label: "Nutzer", icon: "users", href: "#"},
     %{label: "Organisationen", icon: "building-2", href: "#"},
+    %{
+      label: "Kurse",
+      icon: "graduation-cap",
+      href: "#",
+      group: "Lerninhalte",
+      group_icon: "book-open"
+    },
+    %{label: "Videos", icon: "video", href: "#", group: "Lerninhalte", group_icon: "book-open"},
+    %{
+      label: "Fragen",
+      icon: "list-checks",
+      href: "#",
+      group: "Lerninhalte",
+      group_icon: "book-open"
+    },
     %{label: "API-Schlüssel", icon: "key-round", href: "#", group: "System"},
     %{label: "Protokoll", icon: "activity", href: "#", group: "System"}
   ]
@@ -66,7 +81,14 @@ defmodule DfsUi.Styleguide do
   attr :app_name, :string, default: "App"
 
   def page(assigns) do
-    assigns = assign(assigns, nav: @nav, rows: @rows, icons: Icons.names())
+    assigns =
+      assign(assigns,
+        nav: @nav,
+        rows: @rows,
+        icons: Icons.names(),
+        form: sample_form(),
+        upload: sample_upload()
+      )
 
     ~H"""
     <DfsUi.Layouts.admin
@@ -229,6 +251,62 @@ defmodule DfsUi.Styleguide do
           </form>
         </.section>
 
+        <.section
+          title="Dichte Formulare"
+          icon="list-checks"
+          description="form_field mit FormField: Fehler klein mit Icon, erst nach einem Speicherversuch."
+        >
+          <.form for={@form} class="grid gap-4 sm:grid-cols-2" onsubmit="return false">
+            <.form_errors form={@form} labels={%{title: "Titel"}} class="sm:col-span-2" />
+            <.form_field field={@form[:title]} label="Titel" maxlength="200" />
+            <.form_field
+              field={@form[:kind]}
+              type="select"
+              label="Art"
+              prompt="Bitte wählen"
+              options={[{"Video", "video"}, {"Text", "text"}]}
+            />
+            <.form_field field={@form[:body]} type="textarea" label="Beschreibung" rows={3} />
+            <div class="space-y-3">
+              <.form_field field={@form[:published]} type="checkbox" label="Veröffentlicht" />
+              <.checkbox
+                id="sg-cb-ids-1"
+                name="ids[]"
+                value="1"
+                label="Ohne FormField (Mehrfachauswahl)"
+                hidden_false={false}
+                checked
+              />
+              <.textarea id="sg-ta" name="note" label="textarea ohne FormField" rows={2} />
+            </div>
+            <.upload_input
+              upload={@upload}
+              label="CSV-Dateien"
+              hint="Bis zu 5 Dateien, je höchstens 20 MB."
+              class="sm:col-span-2"
+            />
+          </.form>
+        </.section>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+          <.section title="Chips und Fortschritt" icon="filter">
+            <div class="flex flex-wrap gap-2">
+              <.chip patch="#" active count={128}>Alle</.chip>
+              <.chip patch="#" count={12} tone="danger">Fehlerhaft</.chip>
+              <.chip patch="#" count={3} tone="warning">Ungeprüft</.chip>
+              <.chip>Ohne Zähler</.chip>
+            </div>
+            <div class="mt-4 space-y-2">
+              <.progress value={72} label="Fortschritt" />
+              <.progress value={3} max={4} tone="success" />
+              <.progress value={10} tone="warning" show_value={false} />
+            </div>
+          </.section>
+          <.section title="Code" icon="code">
+            <.code_block text={~s|{"status": "ok",\n "imported": 1284,\n "skipped": 3}|} />
+          </.section>
+        </div>
+
         <.section title="Tabelle" icon="list" count={length(@rows)} padded={false}>
           <:actions>
             <.button size="sm" variant="outline"><.icon name="download" /> CSV</.button>
@@ -314,5 +392,33 @@ defmodule DfsUi.Styleguide do
       </.admin_page>
     </DfsUi.Layouts.admin>
     """
+  end
+
+  defp sample_form do
+    Phoenix.Component.to_form(
+      %{"title" => "", "kind" => "video", "body" => "", "published" => "true"},
+      as: :sample,
+      id: "sg-form",
+      errors: [title: {"darf nicht leer sein", []}, title: {"ist zu kurz", []}]
+    )
+  end
+
+  defp sample_upload do
+    conf =
+      Phoenix.LiveView.UploadConfig.build(:csv, "sg-upload",
+        accept: ~w(.csv),
+        max_entries: 5,
+        max_file_size: 20_000_000
+      )
+
+    entry = %Phoenix.LiveView.UploadEntry{
+      ref: "0",
+      upload_ref: "sg-upload",
+      upload_config: :csv,
+      client_name: "fragen_2026.csv",
+      progress: 40
+    }
+
+    %{conf | entries: [entry], errors: [{"0", :too_large}]}
   end
 end

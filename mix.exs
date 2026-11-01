@@ -1,7 +1,7 @@
 defmodule DfsUi.MixProject do
   use Mix.Project
 
-  @version "0.1.2"
+  @version "0.2.0"
   @source_url "https://github.com/deutschlandfahrschule-de/ui"
 
   def project do
@@ -32,6 +32,8 @@ defmodule DfsUi.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_view, "~> 1.0"},
       {:jason, "~> 1.4"},
+      # nur für form_errors/1 (verschachtelte Changeset-Fehler); die Apps bringen Ecto mit
+      {:ecto, "~> 3.12", optional: true},
       {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
