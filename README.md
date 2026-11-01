@@ -9,7 +9,7 @@ Icons, HEEx-Komponenten, Layouts und ein Styleguide. Umsetzung der
 
 ```elixir
 # mix.exs
-{:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.2.0"}
+{:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.2.1"}
 ```
 
 ```elixir

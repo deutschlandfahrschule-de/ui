@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1 – 2026-11-01
+
+- Logo (`priv/static/images/logo.svg`): Zeichenfläche eng um Bildmarke und Schriftzug
+  (vorher 1600 × 260 mit rund einem Viertel leerem Rand rechts). Zentrierte Logos, etwa auf der
+  Anmeldeseite, sitzen jetzt wirklich mittig.
+
 ## v0.2.0 – 2026-11-01
 
 Lücken aus der Umstellung von lms-service-v2 und questions-service geschlossen:
