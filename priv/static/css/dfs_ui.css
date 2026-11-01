@@ -3,27 +3,29 @@
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
-/* Open Sans, selbst gehostet aus priv/static der Bibliothek (App mountet /ui). */
+/* Open Sans, selbst gehostet aus priv/static der Bibliothek (App mountet /ui). Die Kennung ?vsn=
+   muss der Version in mix.exs entsprechen (Test „Versionskennung“), damit Zwischenspeicher neue
+   Schriften sofort holen. */
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/ui/fonts/open-sans-latin-400-normal.woff2") format("woff2");
+  src: url("/ui/fonts/open-sans-latin-400-normal.woff2?vsn=0.2.2") format("woff2");
 }
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url("/ui/fonts/open-sans-latin-600-normal.woff2") format("woff2");
+  src: url("/ui/fonts/open-sans-latin-600-normal.woff2?vsn=0.2.2") format("woff2");
 }
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url("/ui/fonts/open-sans-latin-700-normal.woff2") format("woff2");
+  src: url("/ui/fonts/open-sans-latin-700-normal.woff2?vsn=0.2.2") format("woff2");
 }
 
 @layer base {

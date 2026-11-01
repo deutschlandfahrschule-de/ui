@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.2 – 2026-11-01
+
+- Dateien unter `/ui` (Favicons, Logo, Bildmarke, Schriften) tragen die Bibliotheksversion als
+  `?vsn=…` in der Adresse (`DfsUi.asset_path/2`). Cloudflare und Browser holen sie nach einem
+  Update sofort neu, statt die alte Fassung bis zu vier Stunden weiter auszuliefern.
+- Bei jeder neuen Version auch `?vsn=` an den Schriften in `priv/static/css/dfs_ui.css`
+  anpassen; ein Test meldet, wenn das fehlt.
+- `DfsUi.version/0` liest die Version jetzt beim Kompilieren aus `mix.exs`.
+
 ## v0.2.1 – 2026-11-01
 
 - Logo (`priv/static/images/logo.svg`): Zeichenfläche eng um Bildmarke und Schriftzug

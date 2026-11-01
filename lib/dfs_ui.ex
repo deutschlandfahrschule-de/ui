@@ -6,7 +6,7 @@ defmodule DfsUi do
   Einbindung in einer Phoenix-App:
 
       # mix.exs
-      {:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.2.0"}
+      {:dfs_ui, github: "deutschlandfahrschule-de/ui", tag: "v0.2.2"}
 
       # lib/my_app_web.ex, in html_helpers/0 und live_view/0
       import DfsUi.Components
@@ -33,6 +33,17 @@ defmodule DfsUi do
   Dunkelmodus und Sidebar-Zustand. Der Styleguide liegt unter `DfsUi.StyleguideController`.
   """
 
-  @doc "Version der Bibliothek (für den Styleguide und Fehlermeldungen)."
-  def version, do: Application.spec(:dfs_ui, :vsn) |> to_string()
+  @version Mix.Project.config()[:version]
+
+  @doc "Version der Bibliothek (aus mix.exs)."
+  def version, do: @version
+
+  @doc """
+  Adresse einer Datei aus `priv/static` der Bibliothek mit Versionskennung, z. B.
+  `asset_path("/images/logo.svg")` → `"/ui/images/logo.svg?vsn=0.2.2"`. Die Kennung ändert sich
+  mit jeder Version; Zwischenspeicher wie Cloudflare holen die Datei dann neu, statt eine alte
+  Fassung stundenlang weiter auszuliefern. `base` ist der Pfad, unter dem die App die Dateien
+  ausliefert (Standard `/ui`).
+  """
+  def asset_path(path, base \\ "/ui"), do: base <> path <> "?vsn=" <> @version
 end

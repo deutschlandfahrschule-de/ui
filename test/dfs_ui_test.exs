@@ -220,4 +220,39 @@ defmodule DfsUiTest do
 
   # Ohne phoenix_ecto: Formular direkt aus dem Changeset (form_errors liest nur `source`).
   defp changeset_form(changeset), do: %Phoenix.HTML.Form{source: changeset, name: "course"}
+
+  describe "Versionskennung der Dateien unter /ui" do
+    test "asset_path hängt die Version an" do
+      assert DfsUi.asset_path("/images/logo.svg") == "/ui/images/logo.svg?vsn=#{DfsUi.version()}"
+
+      assert DfsUi.asset_path("/images/logo.svg", "/static/ui") ==
+               "/static/ui/images/logo.svg?vsn=#{DfsUi.version()}"
+    end
+
+    test "Kopf und Layouts nutzen die Kennung" do
+      head = render_component(&DfsUi.Layouts.head/1, %{})
+      assert head =~ ~s(href="/ui/images/favicon.svg?vsn=#{DfsUi.version()}")
+      assert head =~ ~s(href="/ui/images/apple-touch-icon.png?vsn=#{DfsUi.version()}")
+
+      auth =
+        render_component(&DfsUi.Layouts.auth/1, %{
+          flash: %{},
+          inner_block: [%{__slot__: :inner_block, inner_block: fn _, _ -> "Inhalt" end}]
+        })
+
+      assert auth =~ ~s(src="/ui/images/logo.svg?vsn=#{DfsUi.version()}")
+    end
+
+    test "Schriften im Stylesheet tragen die aktuelle Version" do
+      css = File.read!(Path.expand("../priv/static/css/dfs_ui.css", __DIR__))
+
+      kennungen =
+        Regex.scan(~r/woff2\?vsn=([0-9.]+)/, css, capture: :all_but_first) |> List.flatten()
+
+      assert length(kennungen) == 3
+
+      assert Enum.uniq(kennungen) == [DfsUi.version()],
+             "dfs_ui.css: ?vsn= an den Schriften auf #{DfsUi.version()} setzen"
+    end
+  end
 end

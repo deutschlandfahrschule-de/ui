@@ -13,6 +13,10 @@ defmodule DfsUi.Layouts do
 
   alias DfsUi.Format
 
+  # Logo und Bildmarke mit Versionskennung (siehe DfsUi.asset_path/2)
+  @logo_src DfsUi.asset_path("/images/logo.svg")
+  @mark_src DfsUi.asset_path("/images/favicon.svg")
+
   @init_script """
   (() => {
     const html = document.documentElement;
@@ -38,9 +42,9 @@ defmodule DfsUi.Layouts do
 
     ~H"""
     <meta name="color-scheme" content="light dark" />
-    <link rel="icon" href={"#{@base}/images/favicon.svg"} type="image/svg+xml" />
-    <link rel="alternate icon" href={"#{@base}/images/favicon.png"} type="image/png" />
-    <link rel="apple-touch-icon" href={"#{@base}/images/apple-touch-icon.png"} />
+    <link rel="icon" href={DfsUi.asset_path("/images/favicon.svg", @base)} type="image/svg+xml" />
+    <link rel="alternate icon" href={DfsUi.asset_path("/images/favicon.png", @base)} type="image/png" />
+    <link rel="apple-touch-icon" href={DfsUi.asset_path("/images/apple-touch-icon.png", @base)} />
     <script>
       <%= Phoenix.HTML.raw(@script) %>
     </script>
@@ -66,8 +70,8 @@ defmodule DfsUi.Layouts do
   attr :nav, :list, required: true
   attr :user, :map, default: nil, doc: "angemeldeter Nutzer für Avatar, Name und E-Mail"
   attr :home_href, :string, default: "/admin"
-  attr :logo_src, :string, default: "/ui/images/logo.svg"
-  attr :mark_src, :string, default: "/ui/images/favicon.svg"
+  attr :logo_src, :string, default: @logo_src
+  attr :mark_src, :string, default: @mark_src
   attr :logo_alt, :string, default: "Deutschlandfahrschule"
   slot :profile_menu, doc: "Menüpunkte unter Name und E-Mail"
   slot :header, doc: "rechte Seite der Kopfzeile"
@@ -253,7 +257,7 @@ defmodule DfsUi.Layouts do
   attr :flash, :map, required: true
   attr :hint, :string, default: "Dein Konto"
   attr :footer, :string, default: "Deutschlandfahrschule"
-  attr :logo_src, :string, default: "/ui/images/logo.svg"
+  attr :logo_src, :string, default: @logo_src
   slot :inner_block, required: true
 
   def auth(assigns) do
@@ -279,7 +283,7 @@ defmodule DfsUi.Layouts do
   @doc "Kopfzeilen-Layout für Kontoseiten: Logo links, Navigation rechts, Inhalt `max-w-5xl`."
   attr :flash, :map, required: true
   attr :home_href, :string, default: "/"
-  attr :logo_src, :string, default: "/ui/images/logo.svg"
+  attr :logo_src, :string, default: @logo_src
   slot :nav, doc: "rechte Seite der Kopfzeile"
   slot :inner_block, required: true
 
